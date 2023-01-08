@@ -54,6 +54,13 @@ test_examples = test.sample(n=5)
 
 # Predict the labels of the test emails
 pred: np.ndarray = model.predict(vectorizer.transform(test_examples['EmailText']))
-print("EmilText\t\t\tPredicted\tActual")
+print("Email Text\t\t\tPredicted\tActual")
 for i in range(len(test_examples)):
     print(test_examples.iloc[i]['EmailText'][:20], '\t', pred[i], '\t', test_examples.iloc[i]['Label'])
+
+# Check against user inputs
+while True:
+    user_input = input('Enter an email: ')
+    if user_input == 'exit':
+        break
+    print('Predicted: ', model.predict(vectorizer.transform([user_input]))[0])

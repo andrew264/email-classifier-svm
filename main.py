@@ -1,13 +1,22 @@
+import matplotlib.pyplot as plt
+import nltk
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report, confusion_matrix
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 from sklearn import svm
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import GridSearchCV
 
 # Read the data
 df = pd.read_csv('spam.csv', encoding='utf-8')
+
+# Remove stopwords from df['EmailText']
+nltk.download('stopwords')
+ps = PorterStemmer()
+stop_words = set(stopwords.words('english'))
+df['EmailText'] = df['EmailText'].apply(lambda x: ' '.join([ps.stem(word).lower() for word in x.split() if word not in stop_words]))
 
 # Split the data into training and testing sets
 train = df.sample(frac=0.75, random_state=69420)
@@ -61,6 +70,7 @@ for i in range(len(test_examples)):
 # Check against user inputs
 while True:
     user_input = input('Enter an email: ')
-    if user_input == 'exit':
+    if user_input.lower() == 'exit' or user_input == '':
         break
+    user_input = ' '.join([ps.stem(word).lower() for word in user_input.split() if word not in stop_words])
     print('Predicted: ', model.predict(vectorizer.transform([user_input]))[0])

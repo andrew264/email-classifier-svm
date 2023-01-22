@@ -9,14 +9,18 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV
 
+ham_spam = {'ham': 0, 'spam': 1}
+
 # Read the data
 df = pd.read_csv('spam.csv', encoding='utf-8')
+df['Label'] = df['Label'].map(ham_spam)
 
 # Remove stopwords from df['EmailText']
 nltk.download('stopwords')
 ps = PorterStemmer()
 stop_words = set(stopwords.words('english'))
-df['EmailText'] = df['EmailText'].apply(lambda x: ' '.join([ps.stem(word).lower() for word in x.split() if word not in stop_words]))
+df['EmailText'] = df['EmailText'].apply(
+    lambda x: ' '.join([ps.stem(word).lower() for word in x.split() if word not in stop_words]))
 
 # Split the data into training and testing sets
 train = df.sample(frac=0.75, random_state=69420)
@@ -62,10 +66,13 @@ plt.show()
 test_examples = test.sample(n=5)
 
 # Predict the labels of the test emails
+inv_ham_spam = {v: k for k, v in ham_spam.items()}
 pred: np.ndarray = model.predict(vectorizer.transform(test_examples['EmailText']))
 print("Email Text\t\t\tPredicted\tActual")
 for i in range(len(test_examples)):
-    print(test_examples.iloc[i]['EmailText'][:20], '\t', pred[i], '\t', test_examples.iloc[i]['Label'])
+    print(test_examples.iloc[i]['EmailText'][:20],
+          '\t', inv_ham_spam[pred[i]],
+          '\t', inv_ham_spam[test_examples.iloc[i]['Label']])
 
 # Check against user inputs
 while True:
@@ -73,4 +80,4 @@ while True:
     if user_input.lower() == 'exit' or user_input == '':
         break
     user_input = ' '.join([ps.stem(word).lower() for word in user_input.split() if word not in stop_words])
-    print('Predicted: ', model.predict(vectorizer.transform([user_input]))[0])
+    print('Predicted: ', inv_ham_spam[model.predict(vectorizer.transform([user_input]))[0]])
